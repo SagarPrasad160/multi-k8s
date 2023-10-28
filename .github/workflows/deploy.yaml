@@ -13,12 +13,27 @@ jobs:
       - run: docker build -t sagarprasad480/react-test -f ./client/Dockerfile.dev ./client
       - run: docker run -e CI=true sagarprasad480/react-test npm test
 
-      - run: docker build -t sagarprasad480/multi-client ./client
-      - run: docker build -t sagarprasad480/multi-nginx ./nginx
-      - run: docker build -t sagarprasad480/multi-server ./server
-      - run: docker build -t sagarprasad480/multi-worker ./worker
+      - run: docker build -t sagarprasad480/multi-client-10-14 ./client
+      - run: docker build -t sagarprasad480/multi-nginx-10-14 ./nginx
+      - run: docker build -t sagarprasad480/multi-server-10-14 ./server
+      - run: docker build -t sagarprasad480/multi-worker-10-14 ./worker
 
-      - run: docker push sagarprasad480/multi-client
-      - run: docker push sagarprasad480/multi-nginx
-      - run: docker push sagarprasad480/multi-server
-      - run: docker push sagarprasad480/multi-worker
+      - run: docker push sagarprasad480/multi-client-10-14
+      - run: docker push sagarprasad480/multi-nginx-10-14
+      - run: docker push sagarprasad480/multi-server-10-14
+      - run: docker push sagarprasad480/multi-worker-10-14
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: multi-docker
+          environment_name: Multi-docker-env
+          existing_bucket_name: elasticbeanstalk-us-west-1-820175758702
+          region: us-west-1
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
